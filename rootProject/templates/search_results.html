@@ -1,0 +1,27 @@
+<h1>Search Results</h1>
+
+{% comment %} <p> street: {{street}}</p> {% endcomment %}
+
+<p> <strong>Flood zone:</strong> {{zone_value}} </p>
+<p> <strong>Parish:</strong> {{Parish_value}} </p>
+<p> <strong>Square Footage:</strong> {{SquareFootage}} </p>
+
+{% comment %} <p>Average cost % increase for freeboard BFE+1: {{AverageIncrease_BFE1}} </p>
+<p>Average cost % increase for freeboard BFE+2: {{AverageIncrease_BFE2}} </p>
+<p>Average cost % increase for freeboard BFE+3: {{AverageIncrease_BFE3}} </p>
+<p>Average cost % increase for freeboard BFE+4: {{AverageIncrease_BFE4}} </p> {% endcomment %}
+
+
+<p> <strong>For BFE+0:</strong> <br> Premium : &#36;{{Premium_BFE0}} </p>
+<p> <strong>For BFE+1:</strong> <br> Freeboard construction cost : &#36;{{construction_cost_BFE1}},<br> Premium : &#36;{{Premium_BFE1}} </p>
+<p> <strong>For BFE+2:</strong> <br> Freeboard construction cost : &#36;{{construction_cost_BFE2}},<br> Premium : &#36;{{Premium_BFE2}} </p>
+<p> <strong>For BFE+3:</strong> <br> Freeboard construction cost : &#36;{{construction_cost_BFE3}},<br> Premium : &#36;{{Premium_BFE3}} </p>
+<p> <strong>For BFE+4:</strong> <br> Freeboard construction cost : &#36;{{construction_cost_BFE4}},<br> Premium : &#36;{{Premium_BFE4}} </p>
+
+{% comment %} <ul>
+  {% for data in my_data %}
+    <li>
+      {{ data}}
+    </li>
+  {% endfor %}
+</ul> {% endcomment %}

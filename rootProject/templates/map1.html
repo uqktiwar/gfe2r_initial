@@ -1,0 +1,504 @@
+<html class="no-js" lang="zxx">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">    
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="shortcut icon" type="../static/img/logo" href="../static/img/logo/logo_short.png">
+  
+  <title>Flood Safe Home</title>
+      <!-- CSS here -->
+      
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="static/css/slicknav.css">
+    <link rel="stylesheet" href="static/css/flaticon.css">
+    <link rel="stylesheet" href="static/css/progressbar_barfiller.css">
+    <link rel="stylesheet" href="static/css/gijgo.css">
+    <link rel="stylesheet" href="static/css/animate.min.css">
+    <link rel="stylesheet" href="static/css/animated-headline.css">
+    <link rel="stylesheet" href="static/css/magnific-popup.css">
+    <link rel="stylesheet" href="static/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="static/css/themify-icons.css">
+    <link rel="stylesheet" href="static/css/slick.css">
+    <link rel="stylesheet" href="static/css/nice-select.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="static/js/modernizr.js"></script> 
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.17/esri/themes/light/main.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="https://js.arcgis.com/4.17/"></script>
+    <script src="https://cdn.zingchart.com/zingchart.min.js"></script>
+    
+
+<script>
+      require(["esri/WebMap",
+        "esri/widgets/Sketch", 
+        "esri/layers/GraphicsLayer",          
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Search",
+        "esri/widgets/LayerList",
+        "esri/widgets/Legend",
+        "esri/widgets/Expand",
+        "esri/widgets/BasemapToggle",
+        "esri/Map", 
+        "esri/layers/GraphicsLayer",        
+        "esri/views/MapView"], 
+        function(
+        WebMap,
+        Sketch, 
+        GraphicsLayer,
+        MapView,
+        FeatureLayer, 
+        Search, 
+        LayerList, 
+        Legend, 
+        Expand, 
+        BasemapToggle,
+        Map,
+        GraphicsLayer,
+        
+      ) {
+        var webmap = new WebMap({
+          portalItem: {
+            // autocasts as new PortalItem()
+            id: "d61a90015054449484e1bd332a3b75e2"
+          }
+        });
+        
+        /************************************************************
+         * Set the WebMap instance to the map property in a MapView.
+         ************************************************************/
+        var view = new MapView({
+          map: webmap,
+          container: "viewDiv"
+        });
+      
+        // Add the feature layer to search the location based on the address
+        var featureLayerAddress = new FeatureLayer({
+          url:
+            "https://services2.arcgis.com/njxlOVQKvDzk10uN/arcgis/rest/services/ADDRESS/FeatureServer",
+          popupTemplate: {
+            // autocasts as new PopupTemplate()
+            title: "{FullAddress}",
+            overwriteActions: true
+          }
+        });
+
+         // Add the feature layer to search the location based on the parcel
+        var featureLayerParcel = new FeatureLayer({
+          url:
+            "https://services2.arcgis.com/njxlOVQKvDzk10uN/arcgis/rest/services/PARCEL/FeatureServer",
+          popupTemplate: {
+            // autocasts as new PopupTemplate()
+            title: "Parcel ID is {SITE_ID}",
+            overwriteActions: true
+          }
+        });
+        
+            // Search widget start
+        var searchWidget = new Search({
+          view: view,
+          allPlaceholder:"Type your address or parcel ID", //"type an address",//,
+          //value:{{location|safe}},
+          sources: [
+            {
+              layer: featureLayerAddress,         // Search by address
+              searchFields:  ["FullAddress"],
+              displayField: "FullAddress",
+              exactMatch: false,
+              outFields: ["FullAddress"],
+              placeholder: "example: 1107 LAIR AVE",
+              name: "Address",
+              zoomScale: 500,
+              resultSymbol: {
+                r: 178,
+                g: 34,
+                b: 34,
+                a: 0.7
+              }
+            },
+
+            {
+              layer: featureLayerParcel,         // Search by parcel
+              searchFields: ["SITE_ID"],
+              displayField: "SITE_ID",
+              exactMatch: false,
+              outFields: ["SITE_ID"],
+              name: "Parcel",
+              placeholder: "example: M-1686"
+            }
+          ]
+
+    });
+
+        // Add the search widget to the top left corner of the view
+        view.ui.add(searchWidget, {
+          position: "top-right"
+        });
+           // Get the value from the input box
+        console.log(document.getElementById("submitButton"))
+        document.getElementById("submitButton").onclick = (e)=> {
+          e.preventDefault()
+          let el = document.getElementById("tags")
+          console.log(el.value)
+          searchWidget.search(el.value).then((result)=> {
+            console.log("result", result)
+          })
+        }
+
+        // Search widget end
+
+      
+      // Add sketch tool
+        const layer = new GraphicsLayer();
+
+        const sketch = new Sketch({
+          layer: layer,
+          view: view,
+          // graphic will be selected as soon as it is created
+          creationMode: "update"
+        });
+
+        view.ui.add(sketch, "top-right");
+
+        // Add a legend to the panel of a
+        // ListItem in a LayerList 
+        const layerList = new LayerList({
+          view: view,
+          listItemCreatedFunction: function (event) {
+            const item = event.item;
+            if (item.layer.type != "group") {
+              // don't show legend twice
+              item.panel = {
+                content: "legend",
+                open: false
+              };
+            }
+          }
+        });
+        view.ui.add(layerList, "top-right");
+
+        //Basemap toggle
+        var toggle = new BasemapToggle({
+          view: view, // view that provides access to the map's 'topo-vector' basemap
+          nextBasemap: "hybrid" // allows for toggling to the 'hybrid' basemap
+        });
+
+        // Add widget to the bottom right corner of the view
+        view.ui.add(toggle, "bottom-right");
+      });
+  </script>
+</head>
+
+<body>
+
+     <header class="header header-map">
+        <!-- Header Start -->
+        <div class="header-area header-transparent mapHeader">
+            <div class="main-header ">
+                <div class="header-bottom  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-2 col-lg-2">
+                                <div class="logo">
+                                    <a href="/"><img src="static/img/logo/logo.png" alt=""></a>
+                                </div>
+                            </div>
+                            <div class="col-xl-10 col-lg-10">
+                                <div class="menu-wrapper  d-flex align-items-center justify-content-end">
+                                    <!-- Main-menu -->
+                                    <div class="main-menu d-none d-lg-block">
+                                        <nav>
+                                            <ul id="navigation">
+                                                <li><a href="/">Home</a></li>
+                                                <li><a href="/about">About</a>
+                                                  <ul class="submenu">
+                                                       <li><a href="/about#about">About</a></li>
+                                                        <li><a href="/about#goals">Goals</a></li>
+                                                        <li><a href="/about#team">Our Team</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li><a href="/freeboardproject">Freeboard Project</a>
+                                                    <ul class="submenu">
+                                                       <li><a href="/freeboardproject#introduction">Introduction</a></li>
+                                                        <li><a href="/freeboardproject#objects">Objects</a></li>
+                                                        <li><a href="/freeboardproject">Methodologies</a></a></li>
+                                                    </ul>
+                                                </li>
+                                                <li><a href="/map"><b>Decision Making Map</b></a></li>
+                                                <li><a href="/survey">Survey</a></li>
+                                                <li><a href="/helpcenter">Help Center</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Header End -->
+    </header>
+
+  <!-- autosuggestion-->
+   
+
+    <script> 
+    jQuery.noConflict();
+    jQuery(function ($) {    
+    
+    $( "#tags" ).autocomplete({
+      source: "{% url 'autosuggest' %}"
+        });
+     } );
+    </script>
+   <!--autosuggestion End-->
+
+  <!--Disclaimer start-->
+  <div class="bts-popup" role="alert">
+      <div class="bts-popup-container type-details">
+        <center><img src="../static/img/logo/logo.png" alt="Flood Safe Home" width="50%" /></center>
+          <div class="disclaimer">
+            <p class="p-style">
+              Welcome to the Web portal for the FloodSafeHome decision-making tool. 
+              We hope that you will find this free product to be a useful aid in your research to protect one of the most important investments you will ever make – your home. 
+              The investigators at Louisiana State University and the University of New Orleans, and their Louisiana Sea Grant sponsor, congratulate you for doing the important research in protecting your home from flood. 
+              We update this site as needed, in our efforts to continue to provide the highest-quality product possible.  Nevertheless, we caution that the products available on this website are not immune to error. 
+              Please read the Site Disclaimer page for additional information.
+            </p>
+          
+          <!-- Legal Instructions -->
+          <div class="legal__instructions">
+            <div class="alert alert-info" role="alert">
+             <center>
+              <strong>
+                <i class="fa fa-exclamation-triangle"></i>
+                Site Disclaimer
+              </strong> <br>
+              <span>In order to use this decision-making map, you must read the disclaimer and agree with it.</span>
+             </center> 
+            </div>
+          </div>
+
+          <p class="p-style">
+           The products available on this website are derived from products that originate far beyond the LSU and UNO offices that house the investigators and the project sponsor – Louisiana Sea Grant (LSG) program. 
+           Therefore, while every reasonable effort has been made to ensure the accuracy, precision, comprehensiveness, and currency of the maps and data presented, neither the investigators nor the LSG sponsor make any assurances regarding the reliability or accuracy of the base maps, their associated data tables, or the original data collection process. 
+           Likewise, the investigators/sponsor assume no responsibility for any inaccuracies that could have occurred due to errors in the original data input or subsequent updates/analytic processing. 
+           Furthermore, the investigators and their sponsor assume no responsibility for the accuracy of any subsequent copies of the data or any undetectable errors due to electronic transfer of the data from system to system or system to disk. 
+           In other words, <i>the information available on this website is presented “as is” without any warranties of any kind, express or implied.</i>
+          </p>
+
+          <p class="p-style">
+           The user assumes responsibility for verifying the accuracy of information that may be critical. 
+           These data are NOT to be used as a property survey of any type, legal or otherwise; boundaries shown throughout this web portal are approximate and cannot be used for exact measurement or legal documentation.
+          </p>
+
+          
+          <p class="p-style">
+           In providing data (or access to them) the LSU and UNO investigators, and the project sponsor, assume no obligation to assist in the use of the data, or in the development, use, or maintenance of any applications applied to the data. 
+           Neither the investigators nor the project sponsor are responsible for any other use of this public information or any subsequent copies/updates of this information. 
+           Furthermore, the investigators and project sponsor assert their full legal rights under governmental immunity for any liability arising from any act of omission or commission regarding the information furnished herein.
+          </p>
+         </div>
+         <br> 
+
+        <center>
+        <hr>
+          <p class="disclaimer-button"> 
+          I read the disclaimer information above and understands the limitations of the data herein.   
+            <div class="bts-popup-button bts-popup-container-disagree landing-inputfile" >
+              <a href="/">Disagree </a>
+            </div>   
+            
+            <div class="bts-popup-button bts-popup-container-agree landing-inputfile">
+              <a href="#0" id="cd-tour-trigger" class="button bts-popup-close">Agree</a>
+            </div> 
+          </p>
+        </center>
+      </div>
+  </div>
+  <!--Disclaimer end-->
+
+  <!--Tour guide-->
+	<ul class="cd-tour-wrapper">
+		<li class="cd-single-step">
+			<span>Step 1</span>
+
+			<div class="cd-more-info right cd-single-step:nth-of-type(1)">
+				<h2>Step Number 1</h2>
+				<p class="tour-guide-align">Please fill out the following form completely <i> (All fields are required.)</i> After your building information is filed, please hit the <b class="tour-guide-b">"Get Results"</b>  button!</i></p>
+			</div>
+		</li> <!-- .cd-single-step -->
+
+		<li class="cd-single-step">
+			<span>Step 2</span>
+
+			<div class="cd-more-info right">
+				<h2>Step Number 2</h2>
+				<p>This menu will be linked to a detailed report based on your input values.</p>
+			</div>
+		</li> <!-- .cd-single-step -->
+
+    <li class="cd-single-step">
+			<span>Step 3</span>
+
+			<div class="cd-more-info bottom">
+				<h2>Step Number 3</h2>
+				<p>Check your flood zone! You can turn on/off layers.</p>
+			</div>
+		</li> <!-- .cd-single-step -->
+
+    <li class="cd-single-step">
+			<span>Step 4</span>
+
+			<div class="cd-more-info bottom">
+				<h2>Step Number 4</h2>
+				<p>You can find the detailed information here when you click the 'Get results' button (Step number 2).</p>
+			</div>
+		</li> <!-- .cd-single-step -->
+	</ul> <!-- .cd-tour-wrapper -->
+
+  <!--Tour guide end-->
+
+
+ <!-- Select your building information-->
+ <div class="container left"> 
+      <form method="get" action="/search">
+            {% csrf_token %} 
+      <p> 
+        <h2 class ="map-style-sidebar-title"><b class="map-style-sidebar-b"> Building Information</b></h2> 
+          <div class="box">
+          <b class="map-style"> User Type <sup class="sup">*</sup></b> <br>
+            <label>
+            <input type="radio" name ="chk" value = "Homeowner" class="bar" required checked>Homeowner &nbsp;
+            </label>
+            <label>
+            <input type="radio" name ="chk" value = "Community official" class="bar">Community official</option>
+            </label><br>
+
+          <b class="map-style">Building Type <sup class="sup">*</sup></b><br>
+            <label>
+            <input type="radio" name ="selectBox" value = "new_building" class="bar" required checked>New building 
+            </label>
+            <label>
+            <input type="radio" name ="selectBox" value = "existing_building" class="bar">Existing building</option>
+            </label> <br>
+
+          <b class="map-style">Address or Parcel ID <sup class="sup">*</sup></b><br>
+          <input type="text"  name="location"  id="tags" placeholder="Type your address or parceID" required class="text" value={{location|safe}}> <br>
+          
+          <b class="map-style">Square footage <sup class="sup">*</sup></b> <br>
+            <input type="text"  name="sqft"  id="sqft" placeholder="Type your building's square footage" required class="text"> <br>
+          
+          <b class="map-style">Number of Stories <sup class="sup">*</sup> </b><br>
+            <label>
+            <input type="radio" name ="stories" id="stories" value = "1" class="bar" required checked>One story
+            </label>
+            <label>
+            <input type="radio" name ="stories" id="stories" value = "2" class="bar">Two or more stories
+            </label>
+          </div>
+      
+      
+        <br>
+        &nbsp; &nbsp;  <button class="btn btn-primary" type="submit" > Get results</button>  
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+       <button class="btn btn-primary" type="submit" id="submitButton"> Show map</button>   
+      </form>
+      </p>
+ <hr class="style-three">
+ <!-- Select your building information end-->
+
+ <!-- Side bar naviation menu-->
+  <p>
+    <h2 class ="map-style-sidebar-title"><b class="map-style-sidebar-b map">Freeboard Cost Analysis Report</b></h2>
+    <nav class="nav">
+      <ul class="box ul">
+        <li class="li"><a class="sidemenu" href="#section-1">Summary</a><br>
+        <li class="li"><a class="sidemenu" href="#section-6">Monthly Savings</a></li>
+        <li class="li"><a class="sidemenu" href="#section-2">Freeboard Cost</a>
+        <li class="li"><a class="sidemenu" href="#section-3">Insurance Savings Per Year</a></li>
+        <li class="li"><a class="sidemenu" href="#section-4">Expected Annual Flood Loss</a></li>
+        <li class="li"><a class="sidemenu" href="#section-5">Time to Recover the Freeboard Cost</a></li>
+        <li class="li"><a class="sidemenu" href="#">Save as a PDF</a></li>
+      </ul> 
+    </nav>
+  </p>
+  
+</div>
+<!-- Side bar naviation menu end-->
+
+<!-- Error message-->                                
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert {{ message.tags }} alert-dismissible fade show my-0" role="alert">
+    <strong>{{ message }}</strong>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+<!-- Error message ends--> 
+
+<!--ESRI Map-->
+<div id = "pdf_wrap">
+        <div id="viewDiv" ><section id="section-1"></section>
+        </div>
+
+ 
+
+
+    <script src="../static/js/disclaimer.js"></script>
+    <script src="../static/js/tourguide.js"></script>
+    <script src="./static/js/vendor/modernizr-3.5.0.min.js"></script>
+    <!-- Jquery-->
+    <script src="./static/js/vendor/jquery-1.12.4.min.js"></script>
+    <!-- Jquery Mobile Menu -->
+    <script src="./static/js/jquery.slicknav.min.js"></script>
+
+  
+    <!-- Jquery Plugins, main Jquery -->
+    <script src="./static/js/plugins.js"></script>
+    <script src="./static/js/main.js"></script>
+    <!-- Accessibility Code for "floodsafehome.lsu.edu" -->
+    <script> 
+        window.interdeal = { 
+            "sitekey": "e8d3d174e189523ecbfdacfddd4c53b8", 
+            "Position": "Left", 
+            "Menulang": "EN", 
+            "domains": { "js": "https://cdn.equalweb.com/", 
+            "acc": "https://access.equalweb.com/" }, 
+            "btnStyle": { "vPosition": [ "80%", null ], 
+            "scale": [ "0.5", "0.5" ], 
+            "icon": { "type": 7, 
+            "shape": "semicircle", "outline": false }, 
+            "color": { "main": "#1876c9", "second": "" } 
+            } }; 
+            
+        (function(doc, head, body) { 
+            var coreCall = doc.createElement('script'); 
+            coreCall.src = 'https://cdn.equalweb.com/core/2.1.10/accessibility.js'; 
+            coreCall.defer = true; 
+            coreCall.integrity = 'sha512-PWvjZ/e9EGeHEPppEOqscViKxQIW1/5rJeFedXLJiv0IrltJPvuhrYOiUsOkQ49FaZ5HSDp51/O/6V9uL2nNIA=='; 
+            coreCall.crossOrigin = 'anonymous'; coreCall.setAttribute('data-cfasync', true ); 
+            body? body.appendChild(coreCall) : head.appendChild(coreCall); })
+        (document, document.head, document.body); 
+    </script>
+    <!-- Accessibility Code for "floodsafehome.lsu.edu" end-->
+
+
+</body>
+</html>
